@@ -276,6 +276,9 @@ class Endpoint(base.VertexAiResourceNounWithFutureManager):
         sync=True,
         create_request_timeout: Optional[float] = None,
         endpoint_id: Optional[str] = None,
+        predict_request_response_logging_config: Optional[
+            gca_endpoint_compat.PredictRequestResponseLoggingConfig
+        ] = None,
     ) -> "Endpoint":
         """Creates a new endpoint.
 
@@ -336,6 +339,9 @@ class Endpoint(base.VertexAiResourceNounWithFutureManager):
                 is populated based on a query string argument, such as
                 ``?endpoint_id=12345``. This is the fallback for fields
                 that are not included in either the URI or the body.
+            predict_request_response_logging_config (aiplatform.endpoint.PredictRequestResponseLoggingConfig):
+                Optional. The request response logging configuration for online prediction.
+                Overrides predict_request_response_logging_config set in aiplatform.init.
 
         Returns:
             endpoint (aiplatform.Endpoint):
@@ -369,6 +375,7 @@ class Endpoint(base.VertexAiResourceNounWithFutureManager):
             sync=sync,
             create_request_timeout=create_request_timeout,
             endpoint_id=endpoint_id,
+            predict_request_response_logging_config=predict_request_response_logging_config,
         )
 
     @classmethod
@@ -388,6 +395,9 @@ class Endpoint(base.VertexAiResourceNounWithFutureManager):
         sync=True,
         create_request_timeout: Optional[float] = None,
         endpoint_id: Optional[str] = None,
+        predict_request_response_logging_config: Optional[
+            gca_endpoint_compat.PredictRequestResponseLoggingConfig
+        ] = None,
     ) -> "Endpoint":
         """Creates a new endpoint by calling the API client.
 
@@ -450,6 +460,8 @@ class Endpoint(base.VertexAiResourceNounWithFutureManager):
                 is populated based on a query string argument, such as
                 ``?endpoint_id=12345``. This is the fallback for fields
                 that are not included in either the URI or the body.
+            predict_request_response_logging_config (aiplatform.endpoint.PredictRequestResponseLoggingConfig):
+                Optional. The request response logging configuration for online prediction.
 
         Returns:
             endpoint (aiplatform.Endpoint):
@@ -466,6 +478,7 @@ class Endpoint(base.VertexAiResourceNounWithFutureManager):
             labels=labels,
             encryption_spec=encryption_spec,
             network=network,
+            predict_request_response_logging_config=predict_request_response_logging_config,
         )
 
         operation_future = api_client.create_endpoint(
