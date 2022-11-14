@@ -50,7 +50,7 @@ class PredictSchemata:
     prediction_schema_uri: str
 
     def to_dict(self):
-        """ML metadata schema dictionary representation of this DataClass"""
+        """ML metadata schema dictionary representation of this DataClass."""
         results = {}
         results["instanceSchemaUri"] = self.instance_schema_uri
         results["parametersSchemaUri"] = self.parameters_schema_uri
@@ -62,6 +62,7 @@ class PredictSchemata:
 @dataclass
 class ContainerSpec:
     """Container configuration for the model.
+
     Args:
         image_uri (str):
             Required. URI of the Docker image to be used as the custom
@@ -124,7 +125,7 @@ class ContainerSpec:
     health_route: Optional[str] = None
 
     def to_dict(self):
-        """ML metadata schema dictionary representation of this DataClass"""
+        """ML metadata schema dictionary representation of this DataClass."""
         results = {}
         results["imageUri"] = self.image_uri
         if self.command:
@@ -146,6 +147,7 @@ class ContainerSpec:
 @dataclass
 class AnnotationSpec:
     """A class that represents the annotation spec of a Confusion Matrix.
+
     Args:
         display_name (str):
             Optional. Display name for a column of a confusion matrix.
@@ -157,7 +159,7 @@ class AnnotationSpec:
     id: Optional[str] = None
 
     def to_dict(self):
-        """ML metadata schema dictionary representation of this DataClass"""
+        """ML metadata schema dictionary representation of this DataClass."""
         results = {}
         if self.display_name:
             results["displayName"] = self.display_name
@@ -170,6 +172,7 @@ class AnnotationSpec:
 @dataclass
 class ConfusionMatrix:
     """A class that represents a Confusion Matrix.
+
     Args:
         matrix (List[List[int]]):
             Required. A 2D array of integers that represets the values for the confusion matrix.
@@ -181,10 +184,16 @@ class ConfusionMatrix:
     annotation_specs: Optional[List[AnnotationSpec]] = None
 
     def to_dict(self):
-        ## Todo: add a validation to check 'matrix' and 'annotation_specs' have the same length
-        """ML metadata schema dictionary representation of this DataClass"""
+        """ML metadata schema dictionary representation of this DataClass."""
         results = {}
         if self.annotation_specs:
+            if len(self.annotation_specs) != len(self.matrix):
+                raise ValueError(
+                    "Length of annotation_specs and matrix must be the same. "
+                    "Got lengths {} and {} respectively.".format(
+                        len(self.annotation_specs), len(self.matrix)
+                    )
+                )
             results["annotationSpecs"] = [
                 annotation_spec.to_dict() for annotation_spec in self.annotation_specs
             ]
@@ -255,7 +264,7 @@ class ConfidenceMetric:
     confusion_matrix: Optional[ConfusionMatrix] = None
 
     def to_dict(self):
-        """ML metadata schema dictionary representation of this DataClass"""
+        """ML metadata schema dictionary representation of this DataClass."""
         results = {}
         results["confidenceThreshold"] = self.confidence_threshold
         if self.recall is not None:

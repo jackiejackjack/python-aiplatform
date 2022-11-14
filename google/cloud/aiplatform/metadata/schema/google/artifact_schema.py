@@ -359,7 +359,6 @@ class ClassificationMetrics(base_artifact.BaseArtifactSchema):
         extended_metadata = copy.deepcopy(metadata) if metadata else {}
         if aggregation_type:
             if aggregation_type not in _CLASSIFICATION_METRICS_AGGREGATION_TYPE:
-                ## Todo: add negative test case for this
                 raise ValueError(
                     "aggregation_type can only be 'AGGREGATION_TYPE_UNSPECIFIED', 'MACRO_AVERAGE', or 'MICRO_AVERAGE'."
                 )
@@ -575,6 +574,82 @@ class ForecastingMetrics(base_artifact.BaseArtifactSchema):
             ] = symmetric_mean_absolute_percentage_error
 
         super(ForecastingMetrics, self).__init__(
+            uri=uri,
+            artifact_id=artifact_id,
+            display_name=display_name,
+            schema_version=schema_version,
+            description=description,
+            metadata=extended_metadata,
+            state=state,
+        )
+
+
+class ExperimentModel(base_artifact.BaseArtifactSchema):
+    """An artifact representing a Vertex Experiment Model."""
+
+    schema_title = "google.ExperimentModel"
+
+    def __init__(
+        self,
+        *,
+        framework_name: str,
+        framework_version: str,
+        model_file: str,
+        model_class: Optional[str] = None,
+        predict_schema_ta: Optional[utils.PredictSchemata] = None,
+        artifact_id: Optional[str] = None,
+        uri: Optional[str] = None,
+        display_name: Optional[str] = None,
+        schema_version: Optional[str] = None,
+        description: Optional[str] = None,
+        metadata: Optional[Dict] = None,
+        state: Optional[gca_artifact.Artifact.State] = gca_artifact.Artifact.State.LIVE,
+    ):
+        """Args:
+        framework_name (str):
+            Required. The name of the model's framework. E.g., 'sklearn'
+        framework_version (str):
+            Required. The version of the model's framework. E.g., '1.1.0'
+        model_file (str):
+            Required. The file name of the model. E.g., 'model.pkl'
+        model_class (str):
+            Optional. The class name of the model. E.g., 'sklearn.linear_model._base.LinearRegression'
+        predict_schema_ta (PredictSchemata):
+            Optional. An instance of PredictSchemata which holds instance, parameter and prediction schema uris.
+        artifact_id (str):
+            Optional. The <resource_id> portion of the Artifact name with
+            the format. This is globally unique in a metadataStore:
+            projects/123/locations/us-central1/metadataStores/<metadata_store_id>/artifacts/<resource_id>.
+        uri (str):
+            Optional. The uniform resource identifier of the artifact file. May be empty if there is no actual
+            artifact file.
+        display_name (str):
+            Optional. The user-defined name of the Artifact.
+        schema_version (str):
+            Optional. schema_version specifies the version used by the Artifact.
+            If not set, defaults to use the latest version.
+        description (str):
+            Optional. Describes the purpose of the Artifact to be created.
+        metadata (Dict):
+            Optional. Contains the metadata information that will be stored in the Artifact.
+        state (google.cloud.gapic.types.Artifact.State):
+            Optional. The state of this Artifact. This is a
+            property of the Artifact, and does not imply or
+            capture any ongoing process. This property is
+            managed by clients (such as Vertex AI
+            Pipelines), and the system does not prescribe or
+            check the validity of state transitions.
+        """
+        extended_metadata = copy.deepcopy(metadata) if metadata else {}
+        extended_metadata["frameworkName"] = framework_name
+        extended_metadata["frameworkVersion"] = framework_version
+        extended_metadata["modelFile"] = model_file
+        if model_class is not None:
+            extended_metadata["modelClass"] = model_class
+        if predict_schema_ta is not None:
+            extended_metadata["predictSchemata"] = predict_schema_ta.to_dict()
+
+        super().__init__(
             uri=uri,
             artifact_id=artifact_id,
             display_name=display_name,
