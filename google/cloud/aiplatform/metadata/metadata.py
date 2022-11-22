@@ -15,12 +15,10 @@
 # limitations under the License.
 #
 
-from typing import Dict, Union, Optional, Any, List
+from typing import Any, Dict, List, Optional, Union
 
 from google.api_core import exceptions
 from google.auth import credentials as auth_credentials
-from google.protobuf import timestamp_pb2
-
 from google.cloud.aiplatform import base
 from google.cloud.aiplatform import gapic
 from google.cloud.aiplatform import pipeline_jobs
@@ -30,7 +28,17 @@ from google.cloud.aiplatform.metadata import context
 from google.cloud.aiplatform.metadata import execution
 from google.cloud.aiplatform.metadata import experiment_resources
 from google.cloud.aiplatform.metadata import experiment_run_resource
+from google.cloud.aiplatform.metadata.schema.google import (
+    artifact_schema as google_artifact_schema,
+)
 from google.cloud.aiplatform.tensorboard import tensorboard_resource
+import numpy as np
+import pandas as pd
+import sklearn
+import tensorflow as tf
+import xgboost as xgb
+
+from google.protobuf import timestamp_pb2
 
 _LOGGER = base.Logger(__name__)
 
@@ -424,6 +432,48 @@ class _ExperimentTracker:
             fpr=fpr,
             tpr=tpr,
             threshold=threshold,
+        )
+
+    def log_model(
+        self,
+        model: Union[sklearn.base.BaseEstimator, tf.Module, xgb.Booster],
+        artifact_id: Optional[str] = None,
+        *,
+        uri: Optional[str] = None,
+        input_example: Union[List[any], np.array, pd.DataFrame] = None,
+        display_name: Optional[str] = None,
+    ) -> google_artifact_schema.ExperimentModel:
+        """Save a ML model into a ExperimentModel artifact and log it to this ExperimentRun.
+
+        Supported model frameworks: sklearn, TensorFlow, XGBoost.
+
+        Args:
+            model (Union[sklearn.base.BaseEstimator, tf.Module, xgb.Booster]):
+                Requred. A machine learning model object.
+            artifact_id (str):
+                Optional. The resource id of the artifact. This id must be globally unique in a metadataStore.
+            uri (str):
+                Optional. A gcs directory to save the model file.
+                If not set, default to "gs://default-staging-bucket/ml-framework-model/".
+            input_example (Union[List[any], np.array, pd.DataFrame]):
+                Optional. An example of a valid model input. Will be stored as a yaml file in the gcs uri.
+            display_name (str):
+                Optional. The display name of the artifact.
+
+        Returns:
+            An ExperimentModel object.
+
+        Raises:
+            ValueError: if model type is not supported.
+        """
+        self._validate_experiment_and_run(method_name="log_model")
+        # query the latest metrics artifact resource before logging.
+        self._experiment_run.log_model(
+            model=model,
+            artifact_id=artifact_id,
+            uri=uri,
+            input_example=input_example,
+            display_name=display_name,
         )
 
     def _validate_experiment_and_run(self, method_name: str):
