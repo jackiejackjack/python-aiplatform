@@ -22,7 +22,7 @@ from google.cloud.aiplatform_v1.types import (
     model_monitoring as gca_model_monitoring_v1,
 )
 
-# TODO(b/242108750): remove temporary re-import statements once model monitoring for batch prediction is GA
+# TODO(b/242108750): remove temporary logic once model monitoring for batch prediction is GA
 from google.cloud.aiplatform_v1beta1.types import (
     io as gca_io_v1beta1,
     model_monitoring as gca_model_monitoring_v1beta1,
@@ -88,9 +88,22 @@ class _SkewDetectionConfig:
         self.attribute_skew_thresholds = attribute_skew_thresholds
         self.data_format = data_format
         self.target_field = target_field
+        # TODO(b/242108750): remove temporary logic once model monitoring for batch prediction is GA
+        self._config_for_bp = False
 
-    def as_proto(self):
-        """Returns _SkewDetectionConfig as a proto message."""
+    def as_proto(
+        self,
+    ) -> gca_model_monitoring.ModelMonitoringObjectiveConfig.TrainingPredictionSkewDetectionConfig:
+        """Converts _SkewDetectionConfig to a proto message.
+
+        Returns:
+            The GAPIC representation of the skew detection config.
+        """
+        # TODO(b/242108750): remove temporary logic once model monitoring for batch prediction is GA
+        if self._config_for_bp:
+            gca_model_monitoring = gca_model_monitoring_v1beta1
+        else:
+            gca_model_monitoring = gca_model_monitoring_v1
         skew_thresholds_mapping = {}
         attribution_score_skew_thresholds_mapping = {}
         if self.skew_thresholds is not None:
@@ -137,8 +150,14 @@ class _DriftDetectionConfig:
         self.drift_thresholds = drift_thresholds
         self.attribute_drift_thresholds = attribute_drift_thresholds
 
-    def as_proto(self):
-        """Returns drift detection config as a proto message."""
+    def as_proto(
+        self,
+    ) -> gca_model_monitoring.ModelMonitoringObjectiveConfig.PredictionDriftDetectionConfig:
+        """Converts _DriftDetectionConfig to a proto message.
+
+        Returns:
+            The GAPIC representation of the drift detection config.
+        """
         drift_thresholds_mapping = {}
         attribution_score_drift_thresholds_mapping = {}
         if self.drift_thresholds is not None:
@@ -168,8 +187,14 @@ class _ExplanationConfig:
         """Base class for ExplanationConfig."""
         self.enable_feature_attributes = False
 
-    def as_proto(self):
-        """Returns _ExplanationConfig as a proto message."""
+    def as_proto(
+        self,
+    ) -> gca_model_monitoring.ModelMonitoringObjectiveConfig.ExplanationConfig:
+        """Converts _ExplanationConfig to a proto message.
+
+        Returns:
+            The GAPIC representation of the explanation config.
+        """
         return gca_model_monitoring.ModelMonitoringObjectiveConfig.ExplanationConfig(
             enable_feature_attributes=self.enable_feature_attributes
         )
@@ -199,23 +224,21 @@ class _ObjectiveConfig:
         self.drift_detection_config = drift_detection_config
         self.explanation_config = explanation_config
 
-    # TODO(b/242108750): remove temporary re-import statements once model monitoring for batch prediction is GA
-    def as_proto(self, config_for_bp: bool = False):
-        """Returns _SkewDetectionConfig as a proto message.
+    def as_proto(self) -> gca_model_monitoring.ModelMonitoringObjectiveConfig:
+        """Converts _ObjectiveConfig to a proto message.
 
-        Args:
-            config_for_bp (bool):
-                Optional. Set this parameter to True if the config object
-                is used for model monitoring on a batch prediction job.
+        Returns:
+            The GAPIC representation of the objective config.
         """
-        if config_for_bp:
-            gca_io = gca_io_v1beta1
-            gca_model_monitoring = gca_model_monitoring_v1beta1
-        else:
-            gca_io = gca_io_v1
-            gca_model_monitoring = gca_model_monitoring_v1
         training_dataset = None
         if self.skew_detection_config is not None:
+            # TODO(b/242108750): remove temporary logic once model monitoring for batch prediction is GA
+            if self.skew_detection_config._config_for_bp:
+                gca_io = gca_io_v1beta1
+                gca_model_monitoring = gca_model_monitoring_v1beta1
+            else:
+                gca_io = gca_io_v1
+                gca_model_monitoring = gca_model_monitoring_v1
             training_dataset = (
                 gca_model_monitoring.ModelMonitoringObjectiveConfig.TrainingDataset(
                     target_field=self.skew_detection_config.target_field
@@ -242,6 +265,13 @@ class _ObjectiveConfig:
             else:
                 training_dataset.dataset = self.skew_detection_config.data_source
 
+            # return here if configuring for BP, since it currently only supports skew detection config
+            if self.skew_detection_config._config_for_bp:
+                return gca_model_monitoring.ModelMonitoringObjectiveConfig(
+                    training_dataset=training_dataset,
+                    training_prediction_skew_detection_config=self.skew_detection_config.as_proto(),
+                )
+        gca_model_monitoring = gca_model_monitoring_v1
         return gca_model_monitoring.ModelMonitoringObjectiveConfig(
             training_dataset=training_dataset,
             training_prediction_skew_detection_config=self.skew_detection_config.as_proto()
