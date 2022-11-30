@@ -35,6 +35,7 @@ _TEST_EMAIL2 = "test2"
 _TEST_VALID_DATA_FORMATS = ["tf-record", "csv", "jsonl"]
 _TEST_SAMPLING_RATE = 0.8
 _TEST_MONITORING_INTERVAL = 1
+_TEST_DEFAULT_SKEW_THRESHOLD = [None, 0.2]
 
 
 class TestModelMonitoringConfigs:
@@ -43,7 +44,8 @@ class TestModelMonitoringConfigs:
         [_TEST_BQ_DATASOURCE, _TEST_GCS_DATASOURCE, _TEST_OTHER_DATASOURCE],
     )
     @pytest.mark.parametrize("data_format", _TEST_VALID_DATA_FORMATS)
-    def test_valid_configs(self, data_source, data_format):
+    @pytest.mark.parametrize("default_skew_threshold", _TEST_DEFAULT_SKEW_THRESHOLD)
+    def test_valid_configs(self, data_source, data_format, default_skew_threshold):
         random_sample_config = model_monitoring.RandomSampleConfig(
             sample_rate=_TEST_SAMPLING_RATE
         )
@@ -66,6 +68,7 @@ class TestModelMonitoringConfigs:
             target_field=_TEST_TARGET_FIELD,
             attribute_skew_thresholds={_TEST_KEY: _TEST_THRESHOLD},
             data_format=data_format,
+            default_skew_threshold=default_skew_threshold
         )
 
         expected_training_dataset = (
@@ -110,7 +113,8 @@ class TestModelMonitoringConfigs:
 
     @pytest.mark.parametrize("data_source", [_TEST_GCS_DATASOURCE])
     @pytest.mark.parametrize("data_format", ["other"])
-    def test_invalid_data_format(self, data_source, data_format):
+    @pytest.mark.parametrize("default_skew_threshold", _TEST_DEFAULT_SKEW_THRESHOLD)
+    def test_invalid_data_format(self, data_source, data_format, default_skew_threshold):
         if data_format == "other":
             with pytest.raises(ValueError) as e:
                 model_monitoring.ObjectiveConfig(

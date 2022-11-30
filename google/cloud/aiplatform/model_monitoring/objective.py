@@ -39,16 +39,17 @@ JSONL = "jsonl"
 class _SkewDetectionConfig:
     def __init__(
         self,
-        data_source: str,
-        skew_thresholds: Dict[str, float],
-        target_field: str,
-        attribute_skew_thresholds: Dict[str, float],
+        data_source: Optional[str] = None,
+        skew_thresholds: Optional[Dict[str, float]] = None,
+        target_field: Optional[str] = None,
+        attribute_skew_thresholds: Optional[Dict[str, float]] = None,
         data_format: Optional[str] = None,
+        default_skew_threshold: Optional[float] = None,
     ):
         """Base class for training-serving skew detection.
         Args:
             data_source (str):
-                Required. Path to training dataset.
+                Optional. Path to training dataset.
 
             skew_thresholds (Dict[str, float]):
                 Optional. Key is the feature name and value is the
@@ -59,7 +60,7 @@ class _SkewDetectionConfig:
                 training and prediction feature.
 
             target_field (str):
-                Required. The target field name the model is to
+                Optional. The target field name the model is to
                 predict. This field will be excluded when doing
                 Predict and (or) Explain for the training data.
 
@@ -82,10 +83,19 @@ class _SkewDetectionConfig:
 
                 "jsonl"
                 The source file is a JSONL file.
+                
+            default_skew_threshold (Optional[float]):
+                Optional. The value will be ignored when you pass non-empty
+                skew_thresholds. Otherwise it will be used as default skew alert
+                threshold for all input features. If leave this value empty and
+                also pass in an empty skew_thresholds, the model monitoring
+                backend will use default value 0.3.
+                
         """
         self.data_source = data_source
         self.skew_thresholds = skew_thresholds
         self.attribute_skew_thresholds = attribute_skew_thresholds
+        self.default_skew_threshold = default_skew_threshold
         self.data_format = data_format
         self.target_field = target_field
 
@@ -93,6 +103,7 @@ class _SkewDetectionConfig:
         """Returns _SkewDetectionConfig as a proto message."""
         skew_thresholds_mapping = {}
         attribution_score_skew_thresholds_mapping = {}
+        default_skew_threshold = None
         if self.skew_thresholds is not None:
             for key in self.skew_thresholds.keys():
                 skew_threshold = gca_model_monitoring.ThresholdConfig(
@@ -107,9 +118,14 @@ class _SkewDetectionConfig:
                 attribution_score_skew_thresholds_mapping[
                     key
                 ] = attribution_score_skew_threshold
+        if self.default_skew_threshold is not None:
+            default_skew_threshold = gca_model_monitoring.ThresholdConfig(
+                    value=self.default_skew_threshold
+                )
         return gca_model_monitoring.ModelMonitoringObjectiveConfig.TrainingPredictionSkewDetectionConfig(
             skew_thresholds=skew_thresholds_mapping,
             attribution_score_skew_thresholds=attribution_score_skew_thresholds_mapping,
+            default_skew_threshold=default_skew_threshold
         )
 
 
@@ -266,20 +282,21 @@ class SkewDetectionConfig(_SkewDetectionConfig):
 
     def __init__(
         self,
-        data_source: str,
-        target_field: str,
+        data_source: Optional[str] = None,
+        target_field: Optional[str] = None,
         skew_thresholds: Optional[Dict[str, float]] = None,
         attribute_skew_thresholds: Optional[Dict[str, float]] = None,
         data_format: Optional[str] = None,
+        default_skew_threshold: Optional[float] = None,
     ):
         """Initializer for SkewDetectionConfig.
 
         Args:
             data_source (str):
-                Required. Path to training dataset.
+                Optional. Path to training dataset.
 
             target_field (str):
-                Required. The target field name the model is to
+                Optional. The target field name the model is to
                 predict. This field will be excluded when doing
                 Predict and (or) Explain for the training data.
 
@@ -310,16 +327,24 @@ class SkewDetectionConfig(_SkewDetectionConfig):
 
                 "jsonl"
                 The source file is a JSONL file.
+                
+            default_skew_threshold (Optional[float]):
+                Optional. The value will be ignored when you pass non-empty
+                skew_thresholds. Otherwise it will be used as default skew alert
+                threshold for all input features. If leave this value empty and
+                also pass in an empty skew_thresholds, the model monitoring
+                backend will use default value 0.3.
 
         Raises:
             ValueError for unsupported data formats.
         """
         super().__init__(
-            data_source,
-            skew_thresholds,
-            target_field,
-            attribute_skew_thresholds,
-            data_format,
+            data_source=data_source,
+            skew_thresholds=skew_thresholds,
+            target_field=target_field,
+            attribute_skew_thresholds=attribute_skew_thresholds,
+            data_format=data_format,
+            default_skew_threshold=default_skew_threshold,
         )
 
 
