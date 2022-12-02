@@ -1,6 +1,25 @@
 # Changelog
 
 
+## [1.20.0](https://github.com/googleapis/python-aiplatform/compare/v1.19.0...v1.20.0) (2022-12-02)
+
+
+### Features
+
+* Add explanationSpec to TrainingPipeline-based custom jobs ([957703f](https://github.com/googleapis/python-aiplatform/commit/957703f9b9c953ee1f67740a652f68279907b104))
+
+
+### Bug Fixes
+
+* Add pre-built container(tf2-gpu-2-1) to the container URI list ([cdd557e](https://github.com/googleapis/python-aiplatform/commit/cdd557e5e86b0b4d4cf401509aba5914e0bab8b7))
+* Fix bug that broke profiler with '0-rc2' tensorflow versions. ([8779df5](https://github.com/googleapis/python-aiplatform/commit/8779df5362a6851372cf3cea005a1c6c3096b19e))
+
+
+### Documentation
+
+* Update docstrings for "data_item_labels" in dataset ([b2f8c42](https://github.com/googleapis/python-aiplatform/commit/b2f8c42d88c29010cf78a9f44fb3cdb711a1e94c))
+* Update README fix product doc link ([43a2679](https://github.com/googleapis/python-aiplatform/commit/43a2679c0d6f5cba7dff4535a03aedd84e09a2f1))
+
 ## [1.19.0](https://github.com/googleapis/python-aiplatform/compare/v1.18.3...v1.19.0) (2022-11-17)
 
 
