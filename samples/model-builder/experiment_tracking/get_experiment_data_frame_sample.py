@@ -22,7 +22,7 @@ def get_experiments_data_frame_sample(
     project: str,
     location: str,
 ):
-    aiplatform.init(experiment_name=experiment_name, project=project, location=location)
+    aiplatform.init(experiment=experiment_name, project=project, location=location)
 
     experiments_df = aiplatform.get_experiment_df()
 
